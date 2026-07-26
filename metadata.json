@@ -1,0 +1,6 @@
+{
+  "name": "Secure Files",
+  "description": "Secure file manager and encrypted file vault app with PIN protection, file browsing, sorting, and category filters.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
