@@ -29,19 +29,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+          gradle-version: "9.6.1"
 
       - name: Ensure debug keystore exists
-        # app/build.gradle.kts's debugConfig signing config expects
-        # ${rootDir}/debug.keystore. It is not (and should not be)
-        # committed to the repo, so generate a standard, deterministic
-        # Android debug keystore here if one isn't already present.
-        # This is a debug-only signing key with well-known, non-secret
-        # credentials (androiddebugkey / android) — safe to generate
-        # in CI, never used for release signing.
+        # app/build.gradle.kts debugConfig signing expects ${rootDir}/debug.keystore.
+        # It is not committed to the repo, so generate a standard Android debug
+        # keystore here if absent. This uses well-known, non-secret credentials
+        # (androiddebugkey / android) — debug-only, never used for release signing.
         run: |
           if [ ! -f debug.keystore ]; then
             keytool -genkeypair \
@@ -55,7 +49,7 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
             echo "Generated new debug.keystore for this run."
           else
-            echo "debug.keystore already present in repo checkout, using it."
+            echo "debug.keystore already present, using it."
           fi
 
       - name: Read version info
@@ -70,15 +64,15 @@ jobs:
           echo "version_name=${VERSION_NAME:-unknown}" >> "$GITHUB_OUTPUT"
           echo "debug_code=${DEBUG_CODE:-unknown}" >> "$GITHUB_OUTPUT"
 
-      - name: Lint (non-blocking check, results uploaded)
-        run: ./gradlew lintDebug
+      - name: Lint (non-blocking)
+        run: gradle lintDebug
         continue-on-error: true
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+        run: gradle testDebugUnitTest
 
       - name: Assemble debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
 
       - name: Locate APK
         id: apk
